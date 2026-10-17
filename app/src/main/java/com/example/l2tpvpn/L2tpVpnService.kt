@@ -111,7 +111,6 @@ class L2tpVpnService : VpnService(), Runnable {
                 val readBytes = input.read(buffer)
                 if (readBytes > 0) {
                     totalBytesOut += readBytes
-                    // Forward encrypted packet to L2TP gateway
                 }
                 Thread.sleep(10)
             }
