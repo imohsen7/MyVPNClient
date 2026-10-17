@@ -1,0 +1,50 @@
+name: Build Private L2TP VPN APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Your Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Custom UI & Traffic Monitor APK
+        run: |
+          gradle wrapper --gradle-version 8.2
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Clone & Build Full L2TP/PPP Open-Source Engine (Android 7.0+ / minSdk 24)
+        run: |
+          git clone https://github.com/kittoku/osc-vpn.git engine_src
+          cd engine_src
+          sed -i 's/minSdk = [0-9]*/minSdk = 24/g' app/build.gradle.kts || true
+          sed -i 's/minSdkVersion [0-9]*/minSdkVersion 24/g' app/build.gradle || true
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Prepare APK Artifacts
+        run: |
+          mkdir -p output_apks
+          cp app/build/outputs/apk/debug/app-debug.apk output_apks/MyCustomUI-L2TP-Monitor-Android7.apk
+          cp engine_src/app/build/outputs/apk/debug/*.apk output_apks/Full-L2TP-Engine-OpenSource.apk || true
+
+      - name: Upload Ready-to-Install APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ready-To-Install-APKs
+          path: output_apks/*.apk
