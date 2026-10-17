@@ -76,7 +76,7 @@ class MainActivity : Activity() {
 
     private fun field(root: LinearLayout, label: String, type: Int): EditText {
         root.addView(TextView(this).apply { text = label; textSize = 14f; setPadding(0,dp(10),0,dp(3)) }, matchWrap())
-        val edit = EditText(this).apply { inputType = type; textSize = 16f; singleLine = true; textDirection = View.TEXT_DIRECTION_LTR; setPadding(dp(10),0,dp(10),0) }
+        val edit = EditText(this).apply { inputType = type; textSize = 16f; setSingleLine(true); textDirection = View.TEXT_DIRECTION_LTR; setPadding(dp(10),0,dp(10),0) }
         root.addView(edit, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(48)))
         return edit
     }

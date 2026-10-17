@@ -1,5 +1,5 @@
 name: Build custom L2TP VPN APK
-on:
+'on':
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
@@ -14,13 +14,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
       - name: Install Android SDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
       - name: Install Gradle
         run: |
           curl -fsSL https://services.gradle.org/distributions/gradle-8.9-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /tmp
+      - name: Validate Android manifest XML
+        run: |
+          python3 - <<'PYXML'
+          import xml.etree.ElementTree as ET
+          path = "app/src/main/AndroidManifest.xml"
+          try:
+              ET.parse(path)
+              print(f"XML OK: {path}")
+          except ET.ParseError as exc:
+              raise SystemExit(f"Invalid XML in {path}: {exc}")
+          PYXML
+      - name: Compile Kotlin sources
+        run: /tmp/gradle-8.9/bin/gradle --no-daemon :app:compileDebugKotlin
       - name: Run protocol unit tests
         run: /tmp/gradle-8.9/bin/gradle --no-daemon :app:testDebugUnitTest
       - name: Build debug APK
